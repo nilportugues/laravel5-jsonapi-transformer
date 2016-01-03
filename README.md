@@ -80,8 +80,9 @@ This is how our `app/Http/routes.php` will look:
 
 ```php
 <?php
-Route::group(['namespace' => 'Api'], function() {
-    Route::resource('employees', 'EmployeesController');    
+Route::group(['namespace' => 'API'], function() {
+    Route::resource('employees', 'EmployeesController');
+    Route::resource('orders', 'OrdersController');
     Route::get(
         'employees/{employee_id}/orders', [
         'as' => 'employees.orders',
@@ -99,7 +100,8 @@ First, let's define the Models for `Employees` and `Orders` using Eloquent.
 
 **Employees (Eloquent Model)**
 ```php
-<?php namespace App\Model\Database;
+<?php //app/Models/Employees.php
+namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -112,7 +114,7 @@ class Employees extends Model
     protected $appends = ['full_name'];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function latestOrders()
     {
@@ -165,7 +167,8 @@ CREATE TABLE `employees` (
 **Orders (Eloquent Model)**
 
 ```php
-<?php namespace App\Model\Database;
+<?php //app/Models/Orders.php
+namespace App\Model\Database;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -176,7 +179,7 @@ class Orders extends Model
     protected $primaryKey = 'id';
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function employee()
     {
@@ -226,9 +229,10 @@ Follow up, we'll be creating Transformers. One Transformer is required for each 
 **EmployeesTransformer**
 
 ```php
-<?php namespace App\Model\Api;
+<?php //app/Transformers/EmployeesTransformer.php
+namespace App\Transformers;
 
-use App\Model\Database\Employees;
+use App\Models\Employees;
 use NilPortugues\Api\Mappings\JsonApiMapping;
 
 class EmployeesTransformer implements JsonApiMapping
@@ -244,7 +248,7 @@ class EmployeesTransformer implements JsonApiMapping
     }
 
     /**
-     * Returns a string representing the resource name 
+     * Returns a string representing the resource name
      * as it will be shown after the mapping.
      *
      * @return string
@@ -256,7 +260,7 @@ class EmployeesTransformer implements JsonApiMapping
 
     /**
      * Returns an array of properties that will be renamed.
-     * Key is current property from the class. 
+     * Key is current property from the class.
      * Value is the property's alias name.
      *
      * @return array
@@ -265,7 +269,7 @@ class EmployeesTransformer implements JsonApiMapping
     {
         return [
             'last_name' => 'surname',
-            
+
         ];
     }
 
@@ -292,7 +296,7 @@ class EmployeesTransformer implements JsonApiMapping
     }
 
     /**
-     * Returns a list of URLs. This urls must have placeholders 
+     * Returns a list of URLs. This urls must have placeholders
      * to be replaced with the getIdProperties() values.
      *
      * @return array
@@ -316,7 +320,7 @@ class EmployeesTransformer implements JsonApiMapping
     {
         return [];
     }
-} 
+}
 ```
 
 Same goes for `Orders`. 
@@ -324,9 +328,10 @@ Same goes for `Orders`.
 **OrdersTransformer**
 
 ```php
-<?php namespace App\Model\Api;
+<?php //app/Transformers/OrdersTransformer.php
+namespace App\Transformers;
 
-use App\Orders;
+use App\Models\Orders;
 use NilPortugues\Api\Mappings\JsonApiMapping;
 
 class OrdersTransformer implements JsonApiMapping
@@ -373,7 +378,7 @@ class OrdersTransformer implements JsonApiMapping
     {
         return [
             'self'     => ['name' => 'orders.show', 'as_id' => 'id'],
-            'employee' => ['name' => 'employees.get', 'as_id' => 'employee_id'],
+            'employee' => ['name' => 'employees.show', 'as_id' => 'id'],
         ];
     }
     /**
@@ -383,7 +388,7 @@ class OrdersTransformer implements JsonApiMapping
     {
         return [];
     }
-} 
+}
 ```
 
 
@@ -394,8 +399,8 @@ Create a `jsonapi.php` file in `config/` directory. This file should return an a
 
 ```php
 <?php
-use App\Model\Api\EmployeesTransformer;
-use App\Model\Api\OrdersTransformer;
+use App\Transformers\EmployeesTransformer;
+use App\Transformers\OrdersTransformer;
 
 return [
     EmployeesTransformer::class,
@@ -456,14 +461,37 @@ Same as Laravel 5.
 
 Whether it's Laravel 5 or Lumen, usage is exactly the same. 
 
-Let's create a new controller that extends the `JsonApiController` provided by this package, as follows:
-
+Let's create new controllers for Employees and Orders that extend the `JsonApiController` provided by this package, as follows:
 
 
 ```php
-<?php namespace App\Http\Controllers;
+<?php //app/Http/Controllers/API/OrdersController.php
+namespace App\Http\Controllers\API;
 
-use App\Model\Database\Employees;
+use App\Models\Orders;
+use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
+
+class OrdersController extends JsonApiController
+{
+    /**
+     * Return the Eloquent model that will be used
+     * to model the JSON API resources.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function getDataModel()
+    {
+        return new Orders();
+    }
+}
+```
+
+
+```php
+<?php //app/Http/Controllers/API/EmployeesController.php
+namespace App\Http\Controllers\API;
+
+use App\Models\Employees;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 
 class EmployeesController extends JsonApiController
@@ -513,32 +541,37 @@ As the name suggests, it should list orders, so the behaviour should be the same
 If you look inside the `listAction`you'll find a code similar to the one below, but we just ajusted the behaviour and used it in our controller to support an additional action:
 
 ```php
-<?php namespace App\Http\Controllers;
+<?php //app/Http/Controllers/API/EmployeesController.php
+namespace App\Http\Controllers;
 
-use App\Model\Database\Employees;
-use App\Model\Database\Orders;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
+use NilPortugues\Api\JsonApi\Http\Factory\RequestFactory;
+use NilPortugues\Api\JsonApi\Server\Actions\ListResource;
+use App\Models\Employees;
+use App\Models\Orders;
+use Request;
 
 class EmployeesController extends JsonApiController
 {
     /**
-     * Return the Eloquent model that will be used 
-     * to model the JSON API resources. 
+     * Return the Eloquent model that will be used
+     * to model the JSON API resources.
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
     public function getDataModel()
     {
         return new Employees();
-    }    
-    
+    }
+
     /**
      * @param Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function getOrdersByEmployee(Request $request)
-    {       
+    {
         $apiRequest = RequestFactory::create();
         $page = $apiRequest->getPage();
 
@@ -554,7 +587,7 @@ class EmployeesController extends JsonApiController
             $apiRequest->getIncludedRelationships(),
             $apiRequest->getFilters()
         );
-        
+
         $totalAmount = function() use ($request) {
             $id = (new Orders())->getKeyName();
             return Orders::query()
@@ -572,7 +605,7 @@ class EmployeesController extends JsonApiController
         };
 
         $uri = route('employees.orders', ['employee_id' => $request->employee_id]);
-        
+
         return $resource->get($totalAmount, $results, $uri, Orders::class);
     }
 }
@@ -583,6 +616,113 @@ And you're ready to go. Yes, it is **THAT** simple!
 
 
 ## Examples: Consuming the API
+
+You can populate the database with the following model factories:
+```php
+$factory->define(App\Models\Employees::class, function (Faker\Generator $faker) {
+    return [
+        'company' => $faker->company,
+        'last_name' => $faker->lastName,
+        'first_name' => $faker->firstName,
+        'email_address' => $faker->email,
+        'job_title' => $faker->word,
+        'business_phone' => $faker->phoneNumber,
+        'home_phone' => $faker->phoneNumber,
+        'mobile_phone' => $faker->phoneNumber,
+        'fax_number' => $faker->phoneNumber,
+        'address' => $faker->streetAddress,
+        'city' => $faker->city,
+        'state_province' => $faker->state,
+        'zip_postal_code' => $faker->postcode,
+        'country_region' => $faker->country,
+        'web_page' => $faker->url,
+        'notes' => $faker->sentence,
+    ];
+});
+
+$factory->define(App\Models\Orders::class, function (Faker\Generator $faker) {
+    $employeeIds = \App\Models\Employees::all('id')->pluck('id')->toArray();
+    return [
+        'employee_id' => $faker->randomElement($employeeIds),
+        'customer_id' => $faker->numberBetween(1,100),
+        'order_date' => $faker->dateTimeThisMonth,
+        'shipped_date' => $faker->dateTimeThisMonth,
+        'shipper_id' => $faker->numberBetween(1,100),
+        'ship_name' => $faker->name,
+        'ship_address' => $faker->address,
+        'ship_city' => $faker->city,
+        'ship_state_province' => $faker->state,
+        'ship_zip_postal_code' => $faker->postcode,
+        'ship_country_region' => $faker->country,
+        'shipping_fee' => $faker->randomFloat(2),
+        'taxes' => $faker->randomFloat(2),
+        'payment_type' => $faker->word,
+        'paid_date' => $faker->dateTimeThisMonth,
+        'notes' => $faker->sentence,
+        'tax_rate' => $faker->randomFloat(2),
+        'status_id' => $faker->numberBetween(1,100),
+    ];
+});
+```
+Using these seeders:
+```php
+<?php
+
+use Illuminate\Database\Seeder;
+
+class EmployeesTableSeeder extends Seeder {
+
+	/**
+	 * Auto generated seed file
+	 *
+	 * @return void
+	 */
+	public function run()
+	{
+		\DB::table('employees')->delete();
+		factory(\App\Models\Employees::class, 10)->create();
+	}
+}
+```
+```php
+<?php
+
+use Illuminate\Database\Seeder;
+
+class OrdersTableSeeder extends Seeder {
+
+	/**
+	 * Auto generated seed file
+	 *
+	 * @return void
+	 */
+	public function run()
+	{
+		\DB::table('orders')->delete();
+		factory(App\Models\Orders::class, 20)->create();
+	}
+}
+```
+```php
+<?php
+
+use Illuminate\Database\Seeder;
+
+class DatabaseSeeder extends Seeder
+{
+    /**
+     * Run the database seeds.
+     *
+     * @return void
+     */
+    public function run()
+    {
+        // $this->call(UserTableSeeder::class);
+    	$this->call(EmployeesTableSeeder::class);
+		$this->call(OrdersTableSeeder::class);
+	}
+}
+```
 
 ### GET
 
@@ -695,35 +835,35 @@ POST requires all member attributes to be accepted, even those hidden by the map
 
 For instance, `attachments` member was hidden, but it is required, so it needs to be passed in with a valid value. On the other hand, `full_name` member value must not be passed in as an attribute or resource creation will fail.
 
-Passing and `id` is optional and will be used instead of a server-side generated value if provided.
+Passing an `id` is optional and will be used instead of a server-side generated value if provided.
 
 Sending the following data to the server using `POST`to the following URI  `http://localhost:9000/employees`: 
 
 ```json
 {
-    "data": {
-        "type": "employee",
-        "attributes": {
-            "company": "NilPortugues.com",
-            "surname": "Portugués",
-            "first_name": "Nil",
-            "email_address": "nilportugues@example.com",
-            "job_title": "Web Developer",
-            "business_phone": "(123)555-0100",
-            "home_phone": "(123)555-0102",
-            "mobile_phone": null,
-            "fax_number": "(123)555-0103",
-            "address": "Plaça Catalunya 1",
-            "city": "Barcelona",
-            "state_province": "Barcelona",
-            "zip_postal_code": "08028",
-            "country_region": "Spain",
-            "web_page": "http://nilportugues.com",
-            "notes": null,
-            "attachments": null
-        }
-    }        
-}        
+  "data": {
+    "type": "employee",
+    "attributes": {
+      "company": "NilPortugues.com",
+      "surname": "Portugués",
+      "first_name": "Nil",
+      "email_address": "nilportugues@example.com",
+      "job_title": "Web Developer",
+      "business_phone": "(123)555-0100",
+      "home_phone": "(123)555-0102",
+      "mobile_phone": null,
+      "fax_number": "(123)555-0103",
+      "address": "Plaça Catalunya 1",
+      "city": "Barcelona",
+      "state_province": "Barcelona",
+      "zip_postal_code": "08028",
+      "country_region": "Spain",
+      "web_page": "http://nilportugues.com",
+      "notes": null,
+      "attachments": null
+    }
+  }
+}
 ```
 
 Will produce: 
@@ -973,10 +1113,6 @@ Content-type: application/vnd.api+json
 
 And notice how response will be empty:
 
-```
-```
-
-<br>
 
 ## GET Query Params: include, fields, sort and page
 
@@ -1105,7 +1241,7 @@ This could be done issuing 2 `POST` to the end-points (one for Employee, one for
 }       
 ```
 
-Due to the existance of this use case, we'll have to ajust our Controller implementation overwriting some methods provided by the **JsonApiController**: `createResourceCallable`, `updateResourceCallable` and `patchResourceCallable`.
+Due to the existence of this use case, we'll have to adjust our Controller implementation overwriting some methods provided by the **JsonApiController**: `createResourceCallable`, `updateResourceCallable` and `patchResourceCallable`.
 
 Here's how it would be done for `createResourceCallable`.
 
@@ -1113,11 +1249,16 @@ Here's how it would be done for `createResourceCallable`.
 ```php
 <?php namespace App\Http\Controllers;
 
-use App\Model\Database\Employees;
+use DB;
+use Error;
+use Request;
+use App\Models\Orders;
+use App\Models\Employees;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\DB;
-use NilPortugues\Api\JsonApi\Server\Errors\Error;
 use NilPortugues\Api\JsonApi\Server\Errors\ErrorBag;
+use NilPortugues\Api\JsonApi\Http\Factory\RequestFactory;
+use NilPortugues\Api\JsonApi\Server\Actions\ListResource;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 
 class EmployeesController extends JsonApiController
@@ -1170,18 +1311,17 @@ class EmployeesController extends JsonApiController
             }
         };
     }
-
 }
 ```
 
-It is important, in order to use Transactions, do define in `Eloquent` models the `$fillable` values. 
+It is important, in order to use Transactions, to define in `Eloquent` models the `$fillable` values.
 
 Here's how `Employees` and `Orders` look like with `$fillable` defined.
 
 
 **Employees (Eloquent Model) with $fillable**
 ```php
-<?php namespace App\Model\Database;
+<?php namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -1217,7 +1357,7 @@ class Employees extends Model
     ];
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function latestOrders()
     {
@@ -1239,7 +1379,7 @@ class Employees extends Model
 **Orders (Eloquent Model) with $fillable**
 
 ```php
-<?php namespace App\Model\Database;
+<?php namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
@@ -1275,7 +1415,7 @@ class Orders extends Model
     ];
     
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
     public function employee()
     {
@@ -1296,7 +1436,7 @@ In order to do this, it's as simple as overwriting the JsonApiController `addHea
 ```php
 <?php namespace App\Http\Controllers;
 
-use App\Model\Database\Employees;
+use App\Models\Employees;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -1320,9 +1460,8 @@ class EmployeesController extends JsonApiController
 }    
 ```
 
-Now all supported actions will include the addded custom headers.
+Now all supported actions will include the added custom headers.
 
-<br>
 
 ## Contribute
 
@@ -1331,8 +1470,6 @@ Contributions to the package are always welcome!
 * Report any bugs or issues you find on the [issue tracker](https://github.com/nilportugues/laravel5-jsonapi-transformer/issues/new).
 * You can grab the source code at the package's [Git repository](https://github.com/nilportugues/laravel5-jsonapi-transformer).
 
-
-<br>
 ## Support
 
 Get in touch with me using one of the following means:
@@ -1342,7 +1479,6 @@ Get in touch with me using one of the following means:
  - Using Gitter: [![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/nilportugues/laravel5-jsonapi-transformer?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 
-<br>
 ## Authors
 
 * [Nil Portugués Calderó](http://nilportugues.com)

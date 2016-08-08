@@ -3,3 +3,6 @@
 composer.lock
 build/
 .coveralls.yml
+.settings
+.project
+.buildpath

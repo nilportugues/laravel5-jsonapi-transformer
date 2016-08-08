@@ -33,6 +33,11 @@ trait JsonApiTrait
      * @var int
      */
     protected $pageSize = 10;
+    
+    /**
+     * @var \Illuminate\Database\Eloquent\Builder
+     */
+    protected $query;
 
     /**
      * @param JsonApiSerializer $serializer
@@ -63,7 +68,7 @@ trait JsonApiTrait
         return function () {
             $idKey = $this->getDataModel()->getKeyName();
 
-            return $this->getDataModel()->query()->count([$idKey]);
+            return $this->query->count([$idKey]);
         };
     }
 
@@ -73,6 +78,28 @@ trait JsonApiTrait
      * @return Model
      */
     abstract public function getDataModel();
+    
+    /**
+     * Creates the query to use for obtaining the resources to return.
+     * 
+     * @param array $filters
+     */
+    protected function createQuery($filters)
+    {
+    	$query = $this->getDataModel()->query();
+    	 
+    	foreach($filters as $field => $filter){
+    		$query->where(function($query) use ($field, $filter){
+    			$filterValues = explode(',', $filter);
+    
+    			foreach($filterValues as $filterValue){
+    				$query->orWhere($field, 'LIKE', $filterValue);
+    			}
+    		});
+    	}
+    	 
+    	$this->query = $query;
+    }
 
     /**
      * Returns a list of resources based on pagination criteria.
@@ -83,7 +110,7 @@ trait JsonApiTrait
     protected function listResourceCallable()
     {
         return function () {
-            return EloquentHelper::paginate($this->serializer, $this->getDataModel()->query(), $this->pageSize)->get();
+            return EloquentHelper::paginate($this->serializer, $this->query, $this->pageSize)->get();
         };
     }
 

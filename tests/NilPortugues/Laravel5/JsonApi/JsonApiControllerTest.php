@@ -31,7 +31,7 @@ class JsonApiControllerTest extends LaravelTestCase
         $this->assertContains('&sort=-id', $response->getContent());
     }
 
-    public function testListActionCanFilterMembers()
+    public function testListActionCanRetrieveSparseFieldsets()
     {
         $this->call('GET', 'http://localhost/employees?fields[employee]=company,first_name');
         $response = $this->response;
@@ -39,6 +39,16 @@ class JsonApiControllerTest extends LaravelTestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
         $this->assertContains('&fields[employee]=company,first_name', $response->getContent());
+    }
+    
+    public function testListActionCanFilter()
+    {
+    	$this->call('GET', 'http://localhost/employees?filter[name]=some,company');
+    	$response = $this->response;
+    
+    	$this->assertEquals(200, $response->getStatusCode());
+    	$this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
+    	$this->assertContains('&filter[name]=some,company', $response->getContent());
     }
 
     public function testListAction()

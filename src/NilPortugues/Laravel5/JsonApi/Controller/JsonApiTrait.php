@@ -86,20 +86,26 @@ trait JsonApiTrait
     /**
      * Creates the query to use for obtaining the resources to return.
      * 
-     * @param array $filters
+     * @param array $filter
      */
-    protected function createQuery($filters)
+    protected function createQuery($filter)
     {
     	$queryBuilder = $this->getDataModel()->query();
     	
-    	$lexer = new Lexer();
-		$parser = new Parser();		
-		$rqlQuery = $parser->parse($filters);
+    	if(isset($filter)){
+    	
+	     	$lexer = new Lexer();
+	 		$parser = new Parser();	 		
+	 		
+	 		$tokens = $lexer->tokenize($filter);
+			$rqlQuery = $parser->parse($tokens);
 		
-    	$nodeVisitor = new EloquentNodeVisitor();
-    	$nodeVisitor->visit($rqlQuery, $queryBuilder);	
+	     	$nodeVisitor = new EloquentNodeVisitor();
+	     	$nodeVisitor->visit($rqlQuery, $queryBuilder);	
+    	}
     	
     	$this->query = $queryBuilder;
+    
     }
 
     /**

@@ -15,13 +15,15 @@
     "require": {
         "nilportugues/json-api": "^2.4",
         "symfony/psr-http-message-bridge": "~0.1",
-        "nilportugues/serializer-eloquent": "~1.0"
+        "nilportugues/serializer-eloquent": "~1.0",
+        "xiag/rql-parser": "^2.0"
     },
     "require-dev": {
-        "laravel/laravel": "5.*",
+        "laravel/laravel": "5.2.*",
         "laravel/lumen": "^5.2",
         "phpunit/phpunit": "4.*",
-        "friendsofphp/php-cs-fixer": "^1.10"
+        "friendsofphp/php-cs-fixer": "^1.10",
+        "xiag/rql-command": "^2.0"
     },
     "autoload": {
         "psr-4": {

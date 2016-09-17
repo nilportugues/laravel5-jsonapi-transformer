@@ -21,6 +21,10 @@ use NilPortugues\Api\JsonApi\Server\Errors\ErrorBag;
 use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
 use NilPortugues\Laravel5\JsonApi\JsonApiSerializer;
 use Symfony\Component\HttpFoundation\Response;
+use Xiag\Rql\Parser\Lexer;
+use Xiag\Rql\Parser\Parser;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentQueryBuilder;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentNodeVisitor;
 
 trait JsonApiTrait
 {
@@ -33,6 +37,11 @@ trait JsonApiTrait
      * @var int
      */
     protected $pageSize = 10;
+    
+    /**
+     * @var \Illuminate\Database\Eloquent\Builder
+     */
+    protected $query;
 
     /**
      * @param JsonApiSerializer $serializer
@@ -63,7 +72,7 @@ trait JsonApiTrait
         return function () {
             $idKey = $this->getDataModel()->getKeyName();
 
-            return $this->getDataModel()->query()->count([$idKey]);
+            return $this->query->count([$idKey]);
         };
     }
 
@@ -73,6 +82,31 @@ trait JsonApiTrait
      * @return Model
      */
     abstract public function getDataModel();
+    
+    /**
+     * Creates the query to use for obtaining the resources to return.
+     * 
+     * @param array $filter
+     */
+    protected function createQuery($filter)
+    {
+    	$queryBuilder = $this->getDataModel()->query();
+    	
+    	if(isset($filter)){
+    	
+	     	$lexer = new Lexer();
+	 		$parser = new Parser();	 		
+	 		
+	 		$tokens = $lexer->tokenize($filter);
+			$rqlQuery = $parser->parse($tokens);
+		
+	     	$nodeVisitor = new EloquentNodeVisitor();
+	     	$nodeVisitor->visit($rqlQuery, $queryBuilder);	
+    	}
+    	
+    	$this->query = $queryBuilder;
+    
+    }
 
     /**
      * Returns a list of resources based on pagination criteria.
@@ -83,7 +117,7 @@ trait JsonApiTrait
     protected function listResourceCallable()
     {
         return function () {
-            return EloquentHelper::paginate($this->serializer, $this->getDataModel()->query(), $this->pageSize)->get();
+            return EloquentHelper::paginate($this->serializer, $this->query, $this->pageSize)->get();
         };
     }
 

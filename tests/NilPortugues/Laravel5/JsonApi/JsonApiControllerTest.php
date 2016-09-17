@@ -43,12 +43,12 @@ class JsonApiControllerTest extends LaravelTestCase
     
     public function testListActionCanFilter()
     {
-    	$this->call('GET', 'http://localhost/employees?filter[name]=some,company');
+    	$this->call('GET', 'http://localhost/employees?filter=ne(a,b)');
     	$response = $this->response;
     
     	$this->assertEquals(200, $response->getStatusCode());
     	$this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
-    	$this->assertContains('&filter[name]=some,company', $response->getContent());
+    	$this->assertContains('&filter=ne(a,b)', $response->getContent());
     }
 
     public function testListAction()

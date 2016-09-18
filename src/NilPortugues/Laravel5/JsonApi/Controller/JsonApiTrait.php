@@ -14,17 +14,16 @@ use Carbon\Carbon;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use NilPortugues\Laravel5\JsonApi\Actions\PatchResource;
-use NilPortugues\Laravel5\JsonApi\Actions\PutResource;
 use NilPortugues\Api\JsonApi\Server\Errors\Error;
 use NilPortugues\Api\JsonApi\Server\Errors\ErrorBag;
+use NilPortugues\Laravel5\JsonApi\Actions\PatchResource;
+use NilPortugues\Laravel5\JsonApi\Actions\PutResource;
 use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentNodeVisitor;
 use NilPortugues\Laravel5\JsonApi\JsonApiSerializer;
 use Symfony\Component\HttpFoundation\Response;
 use Xiag\Rql\Parser\Lexer;
 use Xiag\Rql\Parser\Parser;
-use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentQueryBuilder;
-use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentNodeVisitor;
 
 trait JsonApiTrait
 {
@@ -37,7 +36,7 @@ trait JsonApiTrait
      * @var int
      */
     protected $pageSize = 10;
-    
+
     /**
      * @var \Illuminate\Database\Eloquent\Builder
      */
@@ -82,30 +81,28 @@ trait JsonApiTrait
      * @return Model
      */
     abstract public function getDataModel();
-    
+
     /**
      * Creates the query to use for obtaining the resources to return.
-     * 
+     *
      * @param array $filter
      */
     protected function createQuery($filter)
     {
-    	$queryBuilder = $this->getDataModel()->query();
-    	
-    	if(isset($filter)){
-    	
-	     	$lexer = new Lexer();
-	 		$parser = new Parser();	 		
-	 		
-	 		$tokens = $lexer->tokenize($filter);
-			$rqlQuery = $parser->parse($tokens);
-		
-	     	$nodeVisitor = new EloquentNodeVisitor();
-	     	$nodeVisitor->visit($rqlQuery, $queryBuilder);	
-    	}
-    	
-    	$this->query = $queryBuilder;
-    
+        $queryBuilder = $this->getDataModel()->query();
+
+        if (isset($filter)) {
+            $lexer = new Lexer();
+            $parser = new Parser();
+
+            $tokens = $lexer->tokenize($filter);
+            $rqlQuery = $parser->parse($tokens);
+
+            $nodeVisitor = new EloquentNodeVisitor();
+            $nodeVisitor->visit($rqlQuery, $queryBuilder);
+        }
+
+        $this->query = $queryBuilder;
     }
 
     /**
@@ -180,6 +177,7 @@ trait JsonApiTrait
     /**
      * @param Request $request
      * @param $id
+     *
      * @return Response
      */
     protected function putAction(Request $request, $id)
@@ -221,6 +219,7 @@ trait JsonApiTrait
     /**
      * @param Request $request
      * @param $id
+     *
      * @return Response
      */
     protected function patchAction(Request $request, $id)
@@ -235,7 +234,7 @@ trait JsonApiTrait
         if (array_key_exists('attributes', $data) && $model->timestamps) {
             $data['attributes'][$model::UPDATED_AT] = Carbon::now()->toDateTimeString();
         }
-        
+
         return $this->addHeaders(
             $resource->get($id, $data, get_class($model), $find, $update)
         );

@@ -59,7 +59,7 @@ abstract class JsonApiController extends Controller
                 throw new \Exception('Only a single filter is supported at present.');
         }
 
-        $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
+        $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, urlencode($filters)); 
 
         $this->createQuery($filters);
         $totalAmount = $this->totalAmountResourceCallable();

@@ -99,7 +99,7 @@ trait JsonApiTrait
             $rqlQuery = $parser->parse($tokens);
 
             $nodeVisitor = new EloquentNodeVisitor();
-            $nodeVisitor->visit($rqlQuery, $queryBuilder);
+            $nodeVisitor->visit($rqlQuery, $queryBuilder->getQuery());
         }
 
         $this->query = $queryBuilder;

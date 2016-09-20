@@ -2,7 +2,7 @@
 
 namespace NilPortugues\Laravel5\JsonApi\Eloquent;
 
-use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Query\Builder;
 use Xiag\Rql\Parser\Glob;
 use Xiag\Rql\Parser\Node\AbstractQueryNode;
 use Xiag\Rql\Parser\Node\Query\AbstractArrayOperatorNode;
@@ -148,14 +148,16 @@ class EloquentNodeVisitor
      */
     private function visitLogicalNode(AbstractLogicalOperatorNode $node, Builder $builder, $operator)
     {
-        if ($node->getNodeName() !== 'and' && $node->getNodeName() !== 'or') {
+        if ($node->getNodeName() === 'and' || $node->getNodeName() === 'or') {
+            $builder->where(\Closure::bind(function ($constraintGroupBuilder) use ($node) {
+                foreach ($node->getQueries() as $query) {
+                    $this->visitQueryNode($query, $constraintGroupBuilder, $node->getNodeName());
+                }
+            }, $this), null, null, $operator);
+        } else {
             throw new \LogicException(sprintf('Unknown or unsupported logical node "%s"', $node->getNodeName()));
         }
 
-        $builder->where(\Closure::bind(function ($constraintGroupBuilder) use ($node) {
-            foreach ($node->getQueries() as $query) {
-                $this->visitQueryNode($query, $constraintGroupBuilder, $node->getNodeName());
-            }
-        }, $this), null, null, $operator);
+        
     }
 }

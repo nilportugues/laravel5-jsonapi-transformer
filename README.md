@@ -1025,7 +1025,7 @@ And notice how response will be empty:
 
 <br>
 
-## GET Query Params: include, fields, sort and page
+## GET Query Params: include, fields, sort, page and filter
 
 According to the standard, for GET method, it is possible to:
 - Show only those fields requested using `fields`query parameter.
@@ -1087,6 +1087,20 @@ For instance: `/employees?sort=surname,-first_name`
   - &page[size]
   
 For instance: `/employees?page[number]=1&page[size]=10`  
+
+While the standard specifies that a 'filter' query parameter can be provided in order to restrict the list of items that will be returned it doesn't specify how the contents of that parameter should 
+be structured.  In this implementation we've provided support for the following subset of RQL operators:
+
+- Scalar operators: eq, ne, lt, le, gt, ge and like
+- Array operators: in and out
+- Logical operators: and, or and not
+
+These can be used together to form complex queries such as to retrieve all employees whose surname starts with the letter 'b' and whose job title is not 'developer' or 'tester'.
+
+For instance: `/employees?filter=and(like(surname,b*),not(or(eq(job_title,developer),eq(job_title,tester))))`
+
+For more information on how to use and encode these operators please see the [Resource Query Language](https://github.com/persvr/rql) at the GitHub site. 
+
 
 ## POST/PUT/PATCH with Relationships
 

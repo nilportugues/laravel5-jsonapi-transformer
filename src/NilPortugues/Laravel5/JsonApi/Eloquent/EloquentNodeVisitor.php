@@ -33,20 +33,20 @@ class EloquentNodeVisitor
     /**
      * Processes a query node.
      *
-     * @param AbstractQueryNode $node     The node to process
-     * @param Builder           $builder  The Eloquent builder to populate
-     * @param string            $operator The operator to use when appending where clauses
+     * @param AbstractQueryNode $node    The node to process
+     * @param Builder           $builder The Eloquent builder to populate
+     * @param string            $boolean The operator to use when appending where clauses
      *
      * @throws \LogicException Thrown if the node is of an unknown type
      */
-    private function visitQueryNode(AbstractQueryNode $node, Builder $builder, $operator = 'and')
+    private function visitQueryNode(AbstractQueryNode $node, Builder $builder, $boolean = 'and')
     {
         if ($node instanceof AbstractScalarOperatorNode) {
-            $this->visitScalarNode($node, $builder, $operator);
+            $this->visitScalarNode($node, $builder, $boolean);
         } elseif ($node instanceof AbstractArrayOperatorNode) {
-            $this->visitArrayNode($node, $builder, $operator);
+            $this->visitArrayNode($node, $builder, $boolean);
         } elseif ($node instanceof AbstractLogicalOperatorNode) {
-            $this->visitLogicalNode($node, $builder, $operator);
+            $this->visitLogicalNode($node, $builder, $boolean);
         } else {
             throw new \LogicException(sprintf('Unknown node "%s"', $node->getNodeName()));
         }
@@ -55,13 +55,13 @@ class EloquentNodeVisitor
     /**
      * Processes a scalar node.
      *
-     * @param AbstractScalarOperatorNode $node     The node to process
-     * @param Builder                    $builder  The Eloquent builder to populate
-     * @param unknown                    $operator The operator to use when appending where clauses
+     * @param AbstractScalarOperatorNode $node    The node to process
+     * @param Builder                    $builder The Eloquent builder to populate
+     * @param unknown                    $boolean The operator to use when appending where clauses
      *
      * @throws \LogicException Thrown if the node cannot be processed
      */
-    private function visitScalarNode(AbstractScalarOperatorNode $node, Builder $builder, $operator)
+    private function visitScalarNode(AbstractScalarOperatorNode $node, Builder $builder, $boolean)
     {
         static $operators = [
             'like' => 'LIKE',
@@ -87,9 +87,9 @@ class EloquentNodeVisitor
 
         if ($value === null) {
             if ($node->getNodeName() === 'eq') {
-                $builder->whereNull($node->getField(), $operator);
+                $builder->whereNull($node->getField(), $boolean);
             } elseif ($node->getNodeName() === 'ne') {
-                $builder->whereNotNull($node->getField(), $operator);
+                $builder->whereNotNull($node->getField(), $boolean);
             } else {
                 throw new \LogicException(sprintf("Only the 'eq' an 'ne' operators can be used when comparing to 'null()'."));
             }
@@ -98,7 +98,7 @@ class EloquentNodeVisitor
                 $node->getField(),
                 $operators[$node->getNodeName()],
                 $value,
-                $operator
+                $boolean
             );
         }
     }
@@ -106,13 +106,13 @@ class EloquentNodeVisitor
     /**
      * Processes an array node.
      *
-     * @param AbstractArrayOperatorNode $node     The node to process
-     * @param Builder                   $builder  The Eloquent builder to populate
-     * @param unknown                   $operator The operator to use when appending where clauses
+     * @param AbstractArrayOperatorNode $node    The node to process
+     * @param Builder                   $builder The Eloquent builder to populate
+     * @param unknown                   $boolean The operator to use when appending where clauses
      *
      * @throws \LogicException Thrown if the node cannot be processed
      */
-    private function visitArrayNode(AbstractArrayOperatorNode $node, Builder $builder, $operator)
+    private function visitArrayNode(AbstractArrayOperatorNode $node, Builder $builder, $boolean)
     {
         static $operators = [
             'in',
@@ -132,7 +132,7 @@ class EloquentNodeVisitor
         $builder->whereIn(
             $node->getField(),
             $node->getValues(),
-            $operator,
+            $boolean,
             $negate
         );
     }
@@ -140,24 +140,28 @@ class EloquentNodeVisitor
     /**
      * Processes a logical node.
      *
-     * @param AbstractLogicalOperatorNode $node     The node to process
-     * @param Builder                     $builder  The Eloquent builder to populate
-     * @param unknown                     $operator The operator to use when appending where clauses
+     * @param AbstractLogicalOperatorNode $node    The node to process
+     * @param Builder                     $builder The Eloquent builder to populate
+     * @param unknown                     $boolean The operator to use when appending where clauses
      *
      * @throws \LogicException Thrown if the node cannot be processed
      */
-    private function visitLogicalNode(AbstractLogicalOperatorNode $node, Builder $builder, $operator)
+    private function visitLogicalNode(AbstractLogicalOperatorNode $node, Builder $builder, $boolean)
     {
         if ($node->getNodeName() === 'and' || $node->getNodeName() === 'or') {
             $builder->where(\Closure::bind(function ($constraintGroupBuilder) use ($node) {
                 foreach ($node->getQueries() as $query) {
                     $this->visitQueryNode($query, $constraintGroupBuilder, $node->getNodeName());
                 }
-            }, $this), null, null, $operator);
+            }, $this), null, null, $boolean);
+        } elseif ($node->getNodeName() === 'not') {
+            $builder->where(\Closure::bind(function ($constraintGroupBuilder) use ($node, $boolean) {
+                foreach ($node->getQueries() as $query) {
+                    $this->visitQueryNode($query, $constraintGroupBuilder, $boolean);
+                }
+            }, $this), null, null, $boolean.' not');
         } else {
             throw new \LogicException(sprintf('Unknown or unsupported logical node "%s"', $node->getNodeName()));
         }
-
-        
     }
 }

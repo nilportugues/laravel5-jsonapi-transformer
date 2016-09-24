@@ -13,7 +13,7 @@
         }
     ],
     "require": {
-        "nilportugues/json-api": "^2.4",
+        "nilportugues/json-api": "dev-feature/filters",
         "symfony/psr-http-message-bridge": "~0.1",
         "nilportugues/serializer-eloquent": "~1.0",
         "xiag/rql-parser": "^2.0"
@@ -37,5 +37,11 @@
     },
     "config": {
         "preferred-install": "dist"
-    }
+    },
+    "repositories": [
+		{
+	        "type": "vcs",
+	    	"url": "https://github.com/srottem/php-json-api"
+		}
+	]
 }

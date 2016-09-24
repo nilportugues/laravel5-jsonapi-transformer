@@ -20,6 +20,8 @@ use NilPortugues\Laravel5\JsonApi\Actions\DeleteResource;
 use NilPortugues\Laravel5\JsonApi\Actions\GetResource;
 use NilPortugues\Laravel5\JsonApi\Actions\ListResource;
 use Symfony\Component\HttpFoundation\Response;
+use Xiag\Rql\Parser\Lexer;
+use Xiag\Rql\Parser\Token;
 
 /**
  * Class JsonApiController.
@@ -45,23 +47,11 @@ abstract class JsonApiController extends Controller
         $fields = $apiRequest->getFields();
         $sorting = $apiRequest->getSort();
         $included = $apiRequest->getIncludedRelationships();
-        $filters = $apiRequest->getFilters();
+        $filters = $apiRequest->getRawFilter();
 
-        //HACK: JsonAPI is specifying this as an array but it should be a string at this point for RQL processing.
-        switch (count($filters)) {
-            case 0:
-                $filters = null;
-                break;
-            case 1:
-                $filters = $filters[0];
-                break;
-            default:
-                throw new \Exception('Only a single filter is supported at present.');
-        }
+        $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
 
-        $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, urlencode($filters)); 
-
-        $this->createQuery($filters);
+        $this->createQuery(urldecode($filters));
         $totalAmount = $this->totalAmountResourceCallable();
         $results = $this->listResourceCallable();
 

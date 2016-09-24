@@ -135,20 +135,8 @@ class EmployeesController extends JsonApiController
         $fields = $apiRequest->getFields();
         $sorting = $apiRequest->getSort();
         $included = $apiRequest->getIncludedRelationships();
-        $filters = $apiRequest->getFilters();
+        $filters = $apiRequest->getRawFilter();
         
-        //HACK: JsonAPI is specifying this as an array but it should be a string at this point for RQL processing.
-    	switch(count($filters)){
-        	case 0:
-        		$filters = null;
-        		break;
-        	case 1:
-        		$filters = $filters[0];
-        		break;
-        	default:
-        		throw new \Exception('Only a single filter is supported at present.');
-        }      
-
         $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
 
         $totalAmount = function () use ($id) {

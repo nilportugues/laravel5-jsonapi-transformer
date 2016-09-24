@@ -48,7 +48,7 @@ class JsonApiControllerTest extends LaravelTestCase
     
     	$this->assertEquals(200, $response->getStatusCode());
     	$this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
-    	$this->assertContains('&filter=ne%28a%2Cb%29', $response->getContent());
+    	$this->assertContains('&filter=ne(a,b)', $response->getContent());
     }
 
     public function testListAction()

@@ -1088,20 +1088,21 @@ For instance: `/employees?sort=surname,-first_name`
   
 For instance: `/employees?page[number]=1&page[size]=10`  
 
-The standard specifies that the `filter` query parameter can be provided in order to restrict the list of items that will be returned. While standard doesn't specify how the contents 
-of the `filter` parameter should be structured we've provided support for the following subset of operators from the Resource Query Language (RQL):
+- The standard specifies that the `filter` query parameter can be provided in order to restrict the list of items that will be 
+returned. While standard doesn't specify how the contents of the `filter` parameter should be structured we've provided support 
+for the a subset of operators from the Resource Query Language (RQL) allowing you to form complex queries such as 
+*all employees whose surname starts with the letter 'b' and whose job title is not 'developer' or 'tester'*.  This implementation
+supports the following RQL operators:
 
-- Scalar operators: `eq`, `ne`, `lt`, `le`, `gt`, `ge` and `like`
-- Array operators: `in` and `out`
-- Logical operators: `and`, `or` and `not`
-
-These can be used together to form complex queries such as to retrieve all employees whose surname starts with the letter 'b' and whose job title is not 'developer' or 'tester'.
+  - Scalar operators: `eq`, `ne`, `lt`, `le`, `gt`, `ge` and `like`
+  - Array operators: `in` and `out`
+  - Logical operators: `and`, `or` and `not`
 
 For instance: `/employees?filter=and(like(surname,b*),not(or(eq(job_title,developer),eq(job_title,tester))))`
-
 Or alternately:`/employees?filter=(like(surname,b*)%26not(eq(job_title,developer)|eq(job_title,tester)))`
 
-More information on how to use and encode these operators can be found at the [Resource Query Language](https://github.com/persvr/rql) project on GitHub. 
+More information on RQL including how operators and values should be encoded in a query string can be found at the 
+[RQL Parser](https://github.com/xiag-ag/rql-parser) project on GitHub. 
 
 
 ## POST/PUT/PATCH with Relationships

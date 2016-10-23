@@ -23,6 +23,6 @@ class JsonApiSerializer extends Facade
      */
     protected static function getFacadeAccessor()
     {
-        return \NilPortugues\Api\JsonApi\JsonApiSerializer::class;
+        return \NilPortugues\Laravel5\JsonApi\JsonApiSerializer::class;
     }
 }

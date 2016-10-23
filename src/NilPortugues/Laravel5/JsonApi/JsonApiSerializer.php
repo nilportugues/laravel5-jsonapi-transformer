@@ -28,10 +28,7 @@ class JsonApiSerializer extends \NilPortugues\Api\JsonApi\JsonApiSerializer
     protected function serializeObject($value)
     {
         $serialized = EloquentDriver::serialize($value);
-        if ($value !== $serialized) {
-            return $serialized;
-        }
 
-        return parent::serializeObject($value);
+        return ($value !== $serialized) ? $serialized : parent::serializeObject($value);
     }
 }

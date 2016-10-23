@@ -1,3 +1,5 @@
 /vendor
 .env
-.idea
+composer.lock
+build/
+.coveralls.yml

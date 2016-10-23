@@ -10,19 +10,15 @@
 
 namespace NilPortugues\Laravel5\JsonApi\Controller;
 
-use App\Http\Controllers\Controller;
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
+use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
-use NilPortugues\Api\JsonApi\Server\Actions\CreateResource;
-use NilPortugues\Api\JsonApi\Server\Actions\DeleteResource;
-use NilPortugues\Api\JsonApi\Server\Actions\ListResource;
-use NilPortugues\Api\JsonApi\Server\Actions\GetResource;
-use NilPortugues\Api\JsonApi\Server\Actions\PatchResource;
-use NilPortugues\Api\JsonApi\Server\Actions\PutResource;
-use NilPortugues\Api\JsonApi\Server\Errors\Error;
-use NilPortugues\Api\JsonApi\Server\Errors\ErrorBag;
-use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
-use NilPortugues\Laravel5\JsonApi\JsonApiSerializer;
+use NilPortugues\Api\JsonApi\Http\Factory\RequestFactory;
+use NilPortugues\Api\JsonApi\Http\Response\ResourceNotFound;
+use NilPortugues\Laravel5\JsonApi\Actions\CreateResource;
+use NilPortugues\Laravel5\JsonApi\Actions\DeleteResource;
+use NilPortugues\Laravel5\JsonApi\Actions\GetResource;
+use NilPortugues\Laravel5\JsonApi\Actions\ListResource;
 use Symfony\Component\HttpFoundation\Response;
 
 /**
@@ -30,224 +26,124 @@ use Symfony\Component\HttpFoundation\Response;
  */
 abstract class JsonApiController extends Controller
 {
-    /**
-     * @var JsonApiSerializer
-     */
-    protected $serializer;
+    use JsonApiTrait;
 
     /**
-     * @param JsonApiSerializer $serializer
-     */
-    public function __construct(JsonApiSerializer $serializer)
-    {
-        $this->serializer = $serializer;
-    }
-
-    /**
+     * Get many resources.
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function listAction()
+    public function index()
     {
-        $resource = new ListResource($this->serializer);
+        $apiRequest = RequestFactory::create();
+
+        $page = $apiRequest->getPage();
+        if (!$page->size()) {
+            $page->setSize($this->pageSize);
+        }
+
+        $fields = $apiRequest->getFields();
+        $sorting = $apiRequest->getSort();
+        $included = $apiRequest->getIncludedRelationships();
+        $filters = $apiRequest->getFilters();
+
+        $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
 
         $totalAmount = $this->totalAmountResourceCallable();
         $results = $this->listResourceCallable();
 
-        $controllerAction = '\\'.get_class($this).'@listAction';
-        $uri = action($controllerAction, []);
+        $controllerAction = '\\'.get_called_class().'@index';
+        $uri = $this->uriGenerator($controllerAction);
 
         return $this->addHeaders($resource->get($totalAmount, $results, $uri, get_class($this->getDataModel())));
     }
 
     /**
-     * Returns the total number of results available for the current resource.
+     * Get single resource.
      *
-     * @return callable
-     */
-    protected function totalAmountResourceCallable()
-    {
-        return function () {
-            $idKey = $this->getDataModel()->getKeyName();
-
-            return $this->getDataModel()->query()->get([$idKey])->count();
-        };
-    }
-
-    /**
-     * Returns an Eloquent Model.
-     *
-     * @return Model
-     */
-    abstract public function getDataModel();
-
-    /**
-     * Returns a list of resources based on pagination criteria.
-     *
-     * @return callable
-     */
-    protected function listResourceCallable()
-    {
-        return function () {
-            return EloquentHelper::paginate($this->serializer, $this->getDataModel()->query())->get();
-        };
-    }
-
-    /**
-     * @param Response $response
+     * @param $id
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    protected function addHeaders(Response $response)
+    public function show($id)
     {
-        return $response;
+        $apiRequest = RequestFactory::create();
+
+        $resource = new GetResource(
+            $this->serializer,
+            $apiRequest->getFields(),
+            $apiRequest->getIncludedRelationships()
+        );
+
+        $find = $this->findResourceCallable($id);
+
+        return $this->addHeaders($resource->get($id, get_class($this->getDataModel()), $find));
     }
 
     /**
+     * @return ResourceNotFound
+     */
+    public function create()
+    {
+        return new ResourceNotFound();
+    }
+
+    /**
+     * Post Action.
+     *
      * @param Request $request
      *
      * @return \Symfony\Component\HttpFoundation\Response
      */
-    public function getAction(Request $request)
-    {
-        $find = $this->findResourceCallable($request);
-        $resource = new GetResource($this->serializer);
-
-        return $this->addHeaders($resource->get($request->id, get_class($this->getDataModel()), $find));
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return callable
-     */
-    protected function findResourceCallable(Request $request)
-    {
-        return function () use ($request) {
-            $idKey = $this->getDataModel()->getKeyName();
-
-            return $this->getDataModel()->query()->where($idKey, $request->id)->first();
-        };
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function postAction(Request $request)
+    public function store(Request $request)
     {
         $createResource = $this->createResourceCallable();
-
         $resource = new CreateResource($this->serializer);
 
+        $model = $this->getDataModel();
+        $data = (array) $request->get('data');
+        if (array_key_exists('attributes', $data) && $model->timestamps) {
+            $data['attributes'][$model::CREATED_AT] = Carbon::now()->toDateTimeString();
+            $data['attributes'][$model::UPDATED_AT] = Carbon::now()->toDateTimeString();
+        }
+
         return $this->addHeaders(
-            $resource->get((array) $request->get('data'), get_class($this->getDataModel()), $createResource)
+          $resource->get($data, get_class($this->getDataModel()), $createResource)
         );
     }
 
     /**
-     * Reads the input and creates and saves a new Eloquent Model.
+     * @param $id
      *
-     * @return callable
+     * @return Response
      */
-    protected function createResourceCallable()
+    public function update(Request $request, $id)
     {
-        return function (array $data, array $values) {
-            $model = $this->getDataModel()->newInstance();
-
-            foreach ($values as $attribute => $value) {
-                $model->setAttribute($attribute, $value);
-            }
-
-            if (!empty($data['id'])) {
-                $model->setAttribute($model->getKeyName(), $values['id']);
-            }
-
-            try {
-                $model->save();
-            } catch (\Exception $e) {
-                $errorBag[] = new Error('creation_error', 'Resource could not be created');
-                throw $e;
-            }
-
-            return $model;
-        };
+        return (strtoupper($request->getMethod()) === 'PUT') ? $this->putAction($request,
+            $id) : $this->patchAction($request, $id);
     }
 
     /**
-     * @param Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return ResourceNotFound
      */
-    public function patchAction(Request $request)
+    public function edit()
     {
-        $find = $this->findResourceCallable($request);
-        $update = $this->updateResourceCallable();
-
-        $resource = new PatchResource($this->serializer);
-
-        return $this->addHeaders(
-            $resource->get(
-                $request->id,
-                (array) $request->get('data'),
-                get_class($this->getDataModel()),
-                $find,
-                $update
-            )
-        );
+        return new ResourceNotFound();
     }
 
     /**
-     * @return callable
-     */
-    protected function updateResourceCallable()
-    {
-        return function (Model $model, array $values, ErrorBag $errorBag) {
-            foreach ($values as $attribute => $value) {
-                $model->$attribute = $value;
-            }
-            try {
-                $model->update();
-            } catch (\Exception $e) {
-                $errorBag[] = new Error('update_failed', 'Could not update resource.');
-                throw $e;
-            }
-        };
-    }
-
-    /**
-     * @param Request $request
+     * @param $id
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return Response
      */
-    public function putAction(Request $request)
+    public function destroy($id)
     {
-        $find = $this->findResourceCallable($request);
-        $update = $this->updateResourceCallable();
+        $find = $this->findResourceCallable($id);
 
-        $resource = new PutResource($this->serializer);
+        $delete = $this->deleteResourceCallable($id);
 
-        return $this->addHeaders(
-            $resource->get(
-                $request->id,
-                (array) $request->get('data'),
-                get_class($this->getDataModel()),
-                $find,
-                $update
-            )
-        );
-    }
-
-    /**
-     * @param Request $request
-     *
-     * @return \Symfony\Component\HttpFoundation\Response
-     */
-    public function deleteAction(Request $request)
-    {
-        $find = $this->findResourceCallable($request);
         $resource = new DeleteResource($this->serializer);
 
-        return $this->addHeaders($resource->get($request->id, get_class($this->getDataModel()), $find));
+        return $this->addHeaders($resource->get($id, get_class($this->getDataModel()), $find, $delete));
     }
 }

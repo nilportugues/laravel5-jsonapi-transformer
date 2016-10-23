@@ -13,17 +13,24 @@
         }
     ],
     "require": {
-        "nilportugues/json-api": "2.0.0",
-        "symfony/psr-http-message-bridge": "~0.2",
-        "nilportugues/serializer-eloquent": "^1.0"
+        "nilportugues/json-api": "^2.4",
+        "symfony/psr-http-message-bridge": "~0.1",
+        "nilportugues/serializer-eloquent": "~1.0"
     },
     "require-dev": {
         "laravel/laravel": "5.*",
-        "fabpot/php-cs-fixer": "^1.10"
+        "laravel/lumen": "^5.2",
+        "phpunit/phpunit": "4.*",
+        "friendsofphp/php-cs-fixer": "^1.10"
     },
     "autoload": {
         "psr-4": {
             "NilPortugues\\Laravel5\\JsonApi\\" : "src/NilPortugues/Laravel5/JsonApi/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "NilPortugues\\Tests\\" : "tests/NilPortugues/"
         }
     },
     "config": {

@@ -39,11 +39,9 @@ class MappingFactory extends \NilPortugues\Api\Mapping\MappingFactory
                 $attributes = Schema::getColumnListing($value->getTable());
 
                 self::$eloquentClasses[$className] = $attributes;
-
-                return self::$eloquentClasses[$className];
             }
         }
 
-        return parent::getClassProperties($className);
+        return (!empty(self::$eloquentClasses[$className])) ? self::$eloquentClasses[$className] : parent::getClassProperties($className);
     }
 }

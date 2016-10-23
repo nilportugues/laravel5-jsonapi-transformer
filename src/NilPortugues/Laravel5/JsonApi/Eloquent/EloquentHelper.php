@@ -23,20 +23,21 @@ trait EloquentHelper
     /**
      * @param JsonApiSerializer $serializer
      * @param Builder           $builder
+     * @param int               $pageSize
      *
      * @return Builder
      */
-    public static function paginate(JsonApiSerializer $serializer, Builder $builder)
+    public static function paginate(JsonApiSerializer $serializer, Builder $builder, $pageSize = null)
     {
         self::sort($serializer, $builder, $builder->getModel());
 
         $request = RequestFactory::create();
 
         $builder->paginate(
-            $request->getPageSize(),
-            self::columns($serializer, $request->getFields()),
+            $request->getPage()->size() ?: $pageSize,
+            self::columns($serializer, $request->getFields()->get()),
             'page',
-            $request->getPageNumber()
+            $request->getPage()->number()
         );
 
         return $builder;
@@ -52,7 +53,7 @@ trait EloquentHelper
     protected static function sort(JsonApiSerializer $serializer, Builder $builder, Model $model)
     {
         $mapping = $serializer->getTransformer()->getMappingByClassName(get_class($model));
-        $sorts = RequestFactory::create()->getSortDirection();
+        $sorts = RequestFactory::create()->getSort()->sorting();
 
         if (!empty($sorts)) {
             $aliased = $mapping->getAliasedProperties();
@@ -74,7 +75,7 @@ trait EloquentHelper
      *
      * @return array
      */
-    public static function columns(JsonApiSerializer $serializer, array $fields)
+    protected static function columns(JsonApiSerializer $serializer, array $fields)
     {
         $filterColumns = [];
 

@@ -18,7 +18,7 @@
         "nilportugues/serializer-eloquent": "~1.0"
     },
     "require-dev": {
-        "laravel/laravel": "5.*",
+        "laravel/laravel": "5.2",
         "laravel/lumen": "^5.2",
         "phpunit/phpunit": "4.*",
         "friendsofphp/php-cs-fixer": "^1.10"

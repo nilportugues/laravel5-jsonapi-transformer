@@ -176,6 +176,8 @@ JSON;
         $this->assertEquals(201, $response->getStatusCode());
         $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
         $this->assertEquals('http://localhost/employees/1', $response->headers->get('Location'));
+        $content = json_decode($response->getContent());
+        $this->assertEquals('WEB DEVELOPER', $content->data->attributes->job_title);
     }
 
     public function testPostActionCreateNonexistentTypeAndReturnErrors()

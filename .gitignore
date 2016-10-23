@@ -3,3 +3,5 @@
 composer.lock
 build/
 .coveralls.yml
+.idea/
+*.iml

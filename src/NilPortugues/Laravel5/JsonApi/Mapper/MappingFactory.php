@@ -12,6 +12,7 @@ namespace NilPortugues\Laravel5\JsonApi\Mapper;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Str;
 use ReflectionClass;
 
 /**
@@ -36,12 +37,22 @@ class MappingFactory extends \NilPortugues\Api\Mapping\MappingFactory
             $value = $reflection->newInstanceWithoutConstructor();
 
             if (\is_subclass_of($value, Model::class, true)) {
-                $attributes = Schema::getColumnListing($value->getTable());
+                $attributes = array_merge(Schema::getColumnListing($value->getTable()), self::getMutatedAttributes($value));
 
                 self::$eloquentClasses[$className] = $attributes;
             }
         }
 
         return (!empty(self::$eloquentClasses[$className])) ? self::$eloquentClasses[$className] : parent::getClassProperties($className);
+    }
+
+    protected static function getMutatedAttributes(Model $model) {
+        preg_match_all('/(?<=^|;)set([^;]+?)Attribute(;|$)/', implode(';', get_class_methods($model)), $matches);
+        return array_map(function($match) use ($model) {
+            if ($model::$snakeAttributes) {
+                $match = Str::snake($match);
+            }
+            return lcfirst($match);
+        }, $matches[1]);
     }
 }

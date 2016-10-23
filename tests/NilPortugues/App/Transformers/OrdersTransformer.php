@@ -99,7 +99,8 @@ class OrdersTransformer implements JsonApiMapping
      *
      * @return array
      */
-    public function getRequiredProperties() {
+    public function getRequiredProperties()
+    {
         return [];
     }
 }

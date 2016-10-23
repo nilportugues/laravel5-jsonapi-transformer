@@ -46,9 +46,10 @@ class MappingFactory extends \NilPortugues\Api\Mapping\MappingFactory
         return (!empty(self::$eloquentClasses[$className])) ? self::$eloquentClasses[$className] : parent::getClassProperties($className);
     }
 
-    protected static function getMutatedAttributes(Model $model) {
+    protected static function getMutatedAttributes(Model $model)
+    {
         preg_match_all('/(?<=^|;)set([^;]+?)Attribute(;|$)/', implode(';', get_class_methods($model)), $matches);
-        return array_map(function($match) use ($model) {
+        return array_map(function ($match) use ($model) {
             if ($model::$snakeAttributes) {
                 $match = Str::snake($match);
             }

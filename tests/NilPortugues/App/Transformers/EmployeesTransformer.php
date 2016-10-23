@@ -104,7 +104,8 @@ class EmployeesTransformer implements JsonApiMapping
      *
      * @return array
      */
-    public function getRequiredProperties() {
+    public function getRequiredProperties()
+    {
         return [];
     }
 }

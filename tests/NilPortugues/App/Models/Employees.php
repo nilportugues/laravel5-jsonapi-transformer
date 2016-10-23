@@ -65,7 +65,8 @@ class Employees extends Model
         return $this->first_name.' '.$this->last_name;
     }
 
-    public function setJobTitleAttribute($value) {
+    public function setJobTitleAttribute($value)
+    {
         $this->attributes['job_title'] = strtoupper($value);
 
     }

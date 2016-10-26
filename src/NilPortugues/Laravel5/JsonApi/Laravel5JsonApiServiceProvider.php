@@ -14,6 +14,7 @@ namespace NilPortugues\Laravel5\JsonApi;
 use Illuminate\Support\ServiceProvider;
 use NilPortugues\Laravel5\JsonApi\Providers\Laravel51Provider;
 use NilPortugues\Laravel5\JsonApi\Providers\Laravel52Provider;
+use NilPortugues\Laravel5\JsonApi\Providers\Laravel53Provider;
 
 class Laravel5JsonApiServiceProvider extends ServiceProvider
 {
@@ -55,6 +56,9 @@ class Laravel5JsonApiServiceProvider extends ServiceProvider
                 break;
             case false !== strpos($version, '5.2.'):
                 $provider = new Laravel52Provider();
+                break;
+            case false !== strpos($version, '5.3.'):
+                $provider = new Laravel53Provider();
                 break;
             default:
                 throw new \RuntimeException(

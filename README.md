@@ -2,13 +2,13 @@
 
 
 [![Build Status](https://travis-ci.org/nilportugues/laravel5-jsonapi.svg?branch=master)](https://travis-ci.org/nilportugues/laravel5-jsonapi)
-[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/?branch=master) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318/mini.png)](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318) 
-[![Latest Stable Version](https://poser.pugx.org/nilportugues/laravel5-json-api/v/stable)](https://packagist.org/packages/nilportugues/laravel5-json-api) 
-[![Total Downloads](https://poser.pugx.org/nilportugues/laravel5-json-api/downloads)](https://packagist.org/packages/nilportugues/laravel5-json-api) 
-[![License](https://poser.pugx.org/nilportugues/laravel5-json-api/license)](https://packagist.org/packages/nilportugues/laravel5-json-api) 
+[![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/?branch=master) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318/mini.png)](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318)
+[![Latest Stable Version](https://poser.pugx.org/nilportugues/laravel5-json-api/v/stable)](https://packagist.org/packages/nilportugues/laravel5-json-api)
+[![Total Downloads](https://poser.pugx.org/nilportugues/laravel5-json-api/downloads)](https://packagist.org/packages/nilportugues/laravel5-json-api)
+[![License](https://poser.pugx.org/nilportugues/laravel5-json-api/license)](https://packagist.org/packages/nilportugues/laravel5-json-api)
 [![Donate](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://paypal.me/nilportugues)
 
-*Compatible with Laravel 5.0, 5.1 & 5.2*
+*Compatible with Laravel 5.0, 5.1, 5.2 & 5.3*
 
 - Package provides a full implementation of the **[JSON API](https://github.com/json-api/json-api)** specification, and is **featured** on the official site!
 - A **JSON API Transformer** that will allow you to convert any mapped object into a valid JSON API resource.
@@ -49,7 +49,7 @@ Use [Composer](https://getcomposer.org) to install the package:
 composer require nilportugues/laravel5-json-api
 ```
 
-Now run the following artisan command: 
+Now run the following artisan command:
 
 ```
 php artisan vendor:publish
@@ -60,7 +60,7 @@ php artisan vendor:publish
 
 For the sake of having a real life example, this configuration will guide you on how to set up **7 end-points** for two resources, `Employees` and `Orders`.
 
-Both `Employees` and `Orders` resources will be **Eloquent** models, being related one with the other. 
+Both `Employees` and `Orders` resources will be **Eloquent** models, being related one with the other.
 
 Furthermore, `Employees`will be using an Eloquent feature, `appended fields` to demonstrate how it is possible to make the most of Eloquent and this package all together.
 
@@ -262,7 +262,7 @@ class EmployeesTransformer implements JsonApiMapping
     }
 
     /**
-     * Returns a string representing the resource name 
+     * Returns a string representing the resource name
      * as it will be shown after the mapping.
      *
      * @return string
@@ -274,7 +274,7 @@ class EmployeesTransformer implements JsonApiMapping
 
     /**
      * Returns an array of properties that will be renamed.
-     * Key is current property from the class. 
+     * Key is current property from the class.
      * Value is the property's alias name.
      *
      * @return array
@@ -283,7 +283,7 @@ class EmployeesTransformer implements JsonApiMapping
     {
         return [
             'last_name' => 'surname',
-            
+
         ];
     }
 
@@ -310,7 +310,7 @@ class EmployeesTransformer implements JsonApiMapping
     }
 
     /**
-     * Returns a list of URLs. This urls must have placeholders 
+     * Returns a list of URLs. This urls must have placeholders
      * to be replaced with the getIdProperties() values.
      *
      * @return array
@@ -334,7 +334,7 @@ class EmployeesTransformer implements JsonApiMapping
     {
         return [];
     }
-} 
+}
 ```
 
 Same goes for `Orders`,  these files will also be placed at `app/Model/Api`:
@@ -401,16 +401,16 @@ class OrdersTransformer implements JsonApiMapping
     {
         return [];
     }
-    
+
     /**
-     * List the fields that are mandatory in a persitence action (POST/PUT). 
+     * List the fields that are mandatory in a persitence action (POST/PUT).
      * If empty array is returned, all fields are mandatory.
      */
     public function getRequiredProperties()
     {
         return [];
     }    
-} 
+}
 ```
 
 
@@ -471,12 +471,12 @@ $app->group(
         ]);
         $app->get(
             'employees/{employee_id}', [
-            'as' => 'employees.show', 
+            'as' => 'employees.show',
             'uses' =>'EmployeesController@show'
         ]);
         $app->put(
             'employees/{employee_id}', [
-            'as' => 'employees.update', 
+            'as' => 'employees.update',
             'uses' =>'EmployeesController@update'
         ]);
         $app->patch(
@@ -489,16 +489,16 @@ $app->group(
             'as' => 'employees.destroy',
             'uses' =>'EmployeesController@destroy'
         ]);
-        
+
         $app->get(
             'employees/{employee_id}/orders', [
-            'as' => 'employees.orders', 
+            'as' => 'employees.orders',
             'uses' => 'EmployeesController@getOrdersByEmployee'
         ]);
     }
 );
 //...
-``` 
+```
 
 #### Step 3: Definition
 
@@ -510,7 +510,7 @@ Same as Laravel 5.
 
 ## JsonApiController
 
-Whether it's Laravel 5 or Lumen, usage is exactly the same. 
+Whether it's Laravel 5 or Lumen, usage is exactly the same.
 
 Let's create a new controller that extends the `JsonApiController` provided by this package, as follows:
 
@@ -525,8 +525,8 @@ use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 class EmployeesController extends JsonApiController
 {
     /**
-     * Return the Eloquent model that will be used 
-     * to model the JSON API resources. 
+     * Return the Eloquent model that will be used
+     * to model the JSON API resources.
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
@@ -562,7 +562,7 @@ protected function addHeaders(Response $response);
 ```
 
 
-But wait! We're missing out one action, `EmployeesController@getOrdersByEmployee`. 
+But wait! We're missing out one action, `EmployeesController@getOrdersByEmployee`.
 
 As the name suggests, it should list orders, so the behaviour should be the same as the one of `ListAction`.
 
@@ -578,8 +578,8 @@ use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 class EmployeesController extends JsonApiController
 {
     /**
-     * Return the Eloquent model that will be used 
-     * to model the JSON API resources. 
+     * Return the Eloquent model that will be used
+     * to model the JSON API resources.
      *
      * @return \Illuminate\Database\Eloquent\Model
      */
@@ -587,7 +587,7 @@ class EmployeesController extends JsonApiController
     {
         return new Employees();
     }    
-    
+
     /**
      * @param Request $request
      *
@@ -610,7 +610,7 @@ class EmployeesController extends JsonApiController
             $apiRequest->getIncludedRelationships(),
             $apiRequest->getFilters()
         );
-        
+
         $totalAmount = function() use ($request) {
             $id = (new Orders())->getKeyName();
             return Orders::query()
@@ -628,7 +628,7 @@ class EmployeesController extends JsonApiController
         };
 
         $uri = route('employees.orders', ['employee_id' => $request->employee_id]);
-        
+
         return $resource->get($totalAmount, $results, $uri, Orders::class);
     }
 }
@@ -747,13 +747,13 @@ Content-type: application/vnd.api+json
 
 ### POST
 
-POST requires all member attributes to be accepted, even those hidden by the mapper. 
+POST requires all member attributes to be accepted, even those hidden by the mapper.
 
 For instance, `attachments` member was hidden, but it is required, so it needs to be passed in with a valid value. On the other hand, `full_name` member value must not be passed in as an attribute or resource creation will fail.
 
 Passing and `id` is optional and will be used instead of a server-side generated value if provided.
 
-Sending the following data to the server using `POST`to the following URI  `http://localhost:9000/employees`: 
+Sending the following data to the server using `POST`to the following URI  `http://localhost:9000/employees`:
 
 ```json
 {
@@ -782,7 +782,7 @@ Sending the following data to the server using `POST`to the following URI  `http
 }        
 ```
 
-Will produce: 
+Will produce:
 
 ```
 HTTP/1.1 201 Created
@@ -849,7 +849,7 @@ For the sake of this example, we'll just send in a new `job_title` value, and ke
 It's important to notice this time we are required to pass in the `id`, even if it has been passed in by the URI, and of course the `id` values must match. Otherwise it will fail.
 
 
-Sending the following data to the server using `PUT`to the following URI  `http://localhost:9000/employees/10`: 
+Sending the following data to the server using `PUT`to the following URI  `http://localhost:9000/employees/10`:
 
 ```json
 {
@@ -880,7 +880,7 @@ Sending the following data to the server using `PUT`to the following URI  `http:
 ```
 
 
-Will produce: 
+Will produce:
 
 ```
 HTTP/1.1 200 OK
@@ -939,11 +939,11 @@ Content-type: application/vnd.api+json
 
 ### PATCH
 
-PATCH allows partial updates, unlike PUT. 
+PATCH allows partial updates, unlike PUT.
 
 We are required to pass in the `id` member, even if it has been passed in by the URI, and of course the `id` values must match. Otherwise it will fail.
 
-For instance, sending the following data to the server using the following URI  `http://localhost:9000/employees/10`: 
+For instance, sending the following data to the server using the following URI  `http://localhost:9000/employees/10`:
 
 ```json
 {
@@ -957,7 +957,7 @@ For instance, sending the following data to the server using the following URI  
 }
 ```
 
-Will produce: 
+Will produce:
 
 ```
 HTTP/1.1 200 OK
@@ -1019,7 +1019,7 @@ Content-type: application/vnd.api+json
 
 DELETE is the easiest method to use, as it does not require body. Just issue a DELETE to `http://localhost:9000/employees/10/` and `Employee` with `id 10` will be gone.
 
-It will produce the following output: 
+It will produce the following output:
 
 ```
 HTTP/1.1 204 No Content
@@ -1039,8 +1039,8 @@ And notice how response will be empty:
 According to the standard, for GET method, it is possible to:
 - Show only those fields requested using `fields`query parameter.
     - &fields[resource]=field1,field2
-    
-For instance, passing `/employees/10?fields[employee]=company,first_name` will produce the following output: 
+
+For instance, passing `/employees/10?fields[employee]=company,first_name` will produce the following output:
 
 ```json
 {
@@ -1073,19 +1073,19 @@ For instance, passing `/employees/10?fields[employee]=company,first_name` will p
     }
 }
 ```
-    
+
 - Show only those `include` resources by passing in the relationship between them separated by dot, or just pass in list of resources separated by comma.
     - &include=resource1
     - &include=resource1.resource2,resource2.resource3
-    
-    
+
+
 For instance, `/employees?include=order` will only load order type data inside `include` member, but `/employees?include=order.employee` will only load those orders related to the `employee` type.
 
 - Sort results using `sort` and passing in the member names of the main resource defined in `data[type]` member. If it starts with a `-` order is `DESCENDING`, otherwise it's `ASCENDING`.
 
   - &sort=field1,-field2
   - &sort=-field1,field2
-  
+
 For instance: `/employees?sort=surname,-first_name`  
 
 - Pagination is also defined to allow doing page pagination, cursor pagination or offset pagination.
@@ -1094,14 +1094,14 @@ For instance: `/employees?sort=surname,-first_name`
   - &page[cursor]
   - &page[offset]
   - &page[size]
-  
+
 For instance: `/employees?page[number]=1&page[size]=10`  
 
 ## POST/PUT/PATCH with Relationships
 
-The JSON API allows resource creation and modification and passing in `relationships` that will create or alter existing resources too. 
+The JSON API allows resource creation and modification and passing in `relationships` that will create or alter existing resources too.
 
-Let's say we want to create a new `Employee` and pass in its first `Order`too. 
+Let's say we want to create a new `Employee` and pass in its first `Order`too.
 
 This could be done issuing 2 `POST` to the end-points (one for Employee, one for Order) or pass in the first `Order` as a `relationship` with our `Employee`, for instance:
 
@@ -1218,7 +1218,7 @@ class EmployeesController extends JsonApiController
                 $createOrderResource($model, $data);
                 DB::commit();
                 return $model;
-                
+
             } catch(\Exception $e) {
                 DB::rollback();
                 $errorBag[] = new Error('creation_error', 'Resource could not be created');
@@ -1230,7 +1230,7 @@ class EmployeesController extends JsonApiController
 }
 ```
 
-It is important, in order to use Transactions, do define in `Eloquent` models the `$fillable` values. 
+It is important, in order to use Transactions, do define in `Eloquent` models the `$fillable` values.
 
 Here's how `Employees` and `Orders` look like with `$fillable` defined.
 
@@ -1248,7 +1248,7 @@ class Employees extends Model
     protected $table = 'employees';    
     protected $primaryKey = 'id';
     protected $appends = ['full_name'];
-    
+
     /**
      * @var array
      */
@@ -1304,7 +1304,7 @@ class Orders extends Model
     public $timestamps = false;
     protected $table = 'orders';
     protected $primaryKey = 'id';
-    
+
     /**
      * @var array
      */
@@ -1329,7 +1329,7 @@ class Orders extends Model
         'tax_status_id',
         'status_id',
     ];
-    
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
@@ -1346,7 +1346,7 @@ class Orders extends Model
 
 Adding custom response headers can be done for multiple reasons: *versioning, setting expire headers, caching, setting private or public the served content...*
 
-In order to do this, it's as simple as overwriting the JsonApiController `addHeaders` method. For instance, let's use the EmployeeController as an example: 
+In order to do this, it's as simple as overwriting the JsonApiController `addHeaders` method. For instance, let's use the EmployeeController as an example:
 
 
 ```php
@@ -1359,7 +1359,7 @@ use Symfony\Component\HttpFoundation\Response;
 class EmployeesController extends JsonApiController
 {
     //All your supported methods...
-    
+
     /**
      * @param Response $response
      *
@@ -1382,7 +1382,7 @@ Now all supported actions will include the added custom headers.
 
 ### "Undefined index: @type"
 
-This usually happens because you did not write the namespace of your `Mapping` in `config/jsonapi.php`. 
+This usually happens because you did not write the namespace of your `Mapping` in `config/jsonapi.php`.
 Double check, if missing, add it and refresh the resource. It should be gone!
 
 ----

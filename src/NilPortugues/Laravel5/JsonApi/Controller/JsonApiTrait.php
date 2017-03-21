@@ -160,7 +160,7 @@ trait JsonApiTrait
         $model = $this->getDataModel();
         $data = (array) $request->get('data');
         if (array_key_exists('attributes', $data) && $model->timestamps) {
-            $data['attributes'][$model::UPDATED_AT] = Carbon::now()->toDateTimeString();
+            $data['attributes'][$model::UPDATED_AT] = Carbon::now()->format($model::getDateFormat());
         }
 
         return $this->addHeaders(
@@ -202,7 +202,7 @@ trait JsonApiTrait
         $model = $this->getDataModel();
         $data = (array) $request->get('data');
         if (array_key_exists('attributes', $data) && $model->timestamps) {
-            $data['attributes'][$model::UPDATED_AT] = Carbon::now()->toDateTimeString();
+            $data['attributes'][$model::UPDATED_AT] = Carbon::now()->format($model::getDateFormat());
         }
         
         return $this->addHeaders(

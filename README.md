@@ -89,6 +89,7 @@ This is how our `app/Http/routes.php` will look:
 <?php
 Route::group(['namespace' => 'Api'], function() {
     Route::resource('employees', 'EmployeesController');    
+    Route::resource('orders', 'OrdersController');
     Route::get(
         'employees/{employee_id}/orders', [
         'as' => 'employees.orders',
@@ -333,6 +334,16 @@ class EmployeesTransformer implements JsonApiMapping
     {
         return [];
     }
+
+    /**
+     * Returns an array of properties that are mandatory to be passed in when doing create or update.
+     *
+     * @return array
+     */
+    public function getRequiredProperties()
+    {
+        return [];
+    }
 } 
 ```
 
@@ -515,8 +526,10 @@ Let's create a new controller that extends the `JsonApiController` provided by t
 
 **Lumen users must extends from `LumenJsonApiController` not `JsonApiController`**.
 
+**Employees Controller**
+
 ```php
-<?php namespace App\Http\Controllers;
+<?php namespace App\Http\Controllers\Api;
 
 use App\Model\Database\Employees;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
@@ -533,6 +546,30 @@ class EmployeesController extends JsonApiController
     {
         return new Employees();
     }
+}
+```
+
+**Orders Controller**
+
+```php
+<?php namespace App\Http\Controllers\Api;
+
+use App\Model\Database\Orders;
+use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
+
+class OrdersController extends JsonApiController
+{
+    /**
+     * Return the Eloquent model that will be used
+     * to model the JSON API resources.
+     *
+     * @return \Illuminate\Database\Eloquent\Model
+     */
+    public function getDataModel()
+    {
+        return new Orders();
+    }
+
 }
 ```
 
@@ -572,6 +609,9 @@ If you look inside the `listAction`you'll find a code similar to the one below, 
 
 use App\Model\Database\Employees;
 use App\Model\Database\Orders;
+use Illuminate\Http\Request;
+use NilPortugues\Api\JsonApi\Http\Factory\RequestFactory;
+use NilPortugues\Laravel5\JsonApi\Actions\ListResource;
 use NilPortugues\Laravel5\JsonApi\Controller\JsonApiController;
 
 class EmployeesController extends JsonApiController

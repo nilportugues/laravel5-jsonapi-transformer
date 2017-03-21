@@ -31,7 +31,7 @@ class JsonApiControllerTest extends LaravelTestCase
         $this->assertContains('&sort=-id', $response->getContent());
     }
 
-    public function testListActionCanFilterMembers()
+    public function testListActionCanRetrieveSparseFieldsets()
     {
         $this->call('GET', 'http://localhost/employees?fields[employee]=company,first_name');
         $response = $this->response;
@@ -39,6 +39,16 @@ class JsonApiControllerTest extends LaravelTestCase
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
         $this->assertContains('&fields[employee]=company,first_name', $response->getContent());
+    }
+
+    public function testListActionCanFilter()
+    {
+        $this->call('GET', 'http://localhost/employees?filter=ne(a,b)');
+        $response = $this->response;
+
+        $this->assertEquals(200, $response->getStatusCode());
+        $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
+        $this->assertContains('&filter=ne(a,b)', $response->getContent());
     }
 
     public function testListAction()
@@ -62,7 +72,7 @@ class JsonApiControllerTest extends LaravelTestCase
     {
         $this->createNewEmployee();
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
     "data": {
         "type": "employee",
@@ -73,7 +83,7 @@ class JsonApiControllerTest extends LaravelTestCase
 }
 JSON;
         $response = $this->call('PATCH', 'http://localhost/employees/1', json_decode($content, true), [], [], [], '');
-        
+
         $this->assertEquals(200, $response->getStatusCode());
         $this->assertEquals('application/vnd.api+json', $response->headers->get('Content-type'));
     }
@@ -82,7 +92,7 @@ JSON;
     {
         $this->createNewEmployee();
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
     "data": {
         "type": "employee",
@@ -127,7 +137,7 @@ JSON;
      */
     private function createNewEmployee()
     {
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
     "data": {
         "type": "employee",
@@ -183,7 +193,7 @@ JSON;
         //error need to be tested as production or exception will be thrown in debug mode.
         $this->app['config']->set('app.debug', false);
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
     "data": {
         "type": "not_employee",
@@ -202,7 +212,7 @@ JSON;
         //error need to be tested as production or exception will be thrown in debug mode.
         $this->app['config']->set('app.debug', false);
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
     "data": {
         "type": "employee",
@@ -234,7 +244,7 @@ JSON;
         //error need to be tested as production or exception will be thrown in debug mode.
         $this->app['config']->set('app.debug', false);
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
   "data": {
     "type": "employee",
@@ -263,7 +273,7 @@ JSON;
         //error need to be tested as production or exception will be thrown in debug mode.
         $this->app['config']->set('app.debug', false);
 
-        $content = <<<JSON
+        $content = <<<'JSON'
 {
   "data": {
     "type": "employee",

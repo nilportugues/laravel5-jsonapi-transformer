@@ -14,13 +14,16 @@ use Carbon\Carbon;
 use Illuminate\Container\Container;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\Request;
-use NilPortugues\Laravel5\JsonApi\Actions\PatchResource;
-use NilPortugues\Laravel5\JsonApi\Actions\PutResource;
 use NilPortugues\Api\JsonApi\Server\Errors\Error;
 use NilPortugues\Api\JsonApi\Server\Errors\ErrorBag;
+use NilPortugues\Laravel5\JsonApi\Actions\PatchResource;
+use NilPortugues\Laravel5\JsonApi\Actions\PutResource;
 use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentHelper;
+use NilPortugues\Laravel5\JsonApi\Eloquent\EloquentNodeVisitor;
 use NilPortugues\Laravel5\JsonApi\JsonApiSerializer;
 use Symfony\Component\HttpFoundation\Response;
+use Xiag\Rql\Parser\Lexer;
+use Xiag\Rql\Parser\Parser;
 
 trait JsonApiTrait
 {
@@ -33,6 +36,11 @@ trait JsonApiTrait
      * @var int
      */
     protected $pageSize = 10;
+
+    /**
+     * @var \Illuminate\Database\Eloquent\Builder
+     */
+    protected $query;
 
     /**
      * @param JsonApiSerializer $serializer
@@ -63,7 +71,7 @@ trait JsonApiTrait
         return function () {
             $idKey = $this->getDataModel()->getKeyName();
 
-            return $this->getDataModel()->query()->count([$idKey]);
+            return $this->query->count([$idKey]);
         };
     }
 
@@ -75,6 +83,29 @@ trait JsonApiTrait
     abstract public function getDataModel();
 
     /**
+     * Creates the query to use for obtaining the resources to return.
+     *
+     * @param array $filter
+     */
+    protected function createQuery($filter)
+    {
+        $queryBuilder = $this->getDataModel()->query();
+
+        if (isset($filter)) {
+            $lexer = new Lexer();
+            $parser = new Parser();
+
+            $tokens = $lexer->tokenize($filter);
+            $rqlQuery = $parser->parse($tokens);
+
+            $nodeVisitor = new EloquentNodeVisitor();
+            $nodeVisitor->visit($rqlQuery, $queryBuilder->getQuery());
+        }
+
+        $this->query = $queryBuilder;
+    }
+
+    /**
      * Returns a list of resources based on pagination criteria.
      *
      * @return callable
@@ -83,7 +114,7 @@ trait JsonApiTrait
     protected function listResourceCallable()
     {
         return function () {
-            return EloquentHelper::paginate($this->serializer, $this->getDataModel()->query(), $this->pageSize)->get();
+            return EloquentHelper::paginate($this->serializer, $this->query, $this->pageSize)->get();
         };
     }
 
@@ -149,6 +180,7 @@ trait JsonApiTrait
     /**
      * @param Request $request
      * @param $id
+     *
      * @return Response
      */
     protected function putAction(Request $request, $id)
@@ -190,6 +222,7 @@ trait JsonApiTrait
     /**
      * @param Request $request
      * @param $id
+     *
      * @return Response
      */
     protected function patchAction(Request $request, $id)
@@ -204,7 +237,7 @@ trait JsonApiTrait
         if (array_key_exists('attributes', $data) && $model->timestamps) {
             $data['attributes'][$model::UPDATED_AT] = Carbon::now()->toDateTimeString();
         }
-        
+
         return $this->addHeaders(
             $resource->get($id, $data, get_class($model), $find, $update)
         );

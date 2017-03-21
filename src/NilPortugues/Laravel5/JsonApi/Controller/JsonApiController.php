@@ -20,6 +20,8 @@ use NilPortugues\Laravel5\JsonApi\Actions\DeleteResource;
 use NilPortugues\Laravel5\JsonApi\Actions\GetResource;
 use NilPortugues\Laravel5\JsonApi\Actions\ListResource;
 use Symfony\Component\HttpFoundation\Response;
+use Xiag\Rql\Parser\Lexer;
+use Xiag\Rql\Parser\Token;
 
 /**
  * Class JsonApiController.
@@ -45,10 +47,11 @@ abstract class JsonApiController extends Controller
         $fields = $apiRequest->getFields();
         $sorting = $apiRequest->getSort();
         $included = $apiRequest->getIncludedRelationships();
-        $filters = $apiRequest->getFilters();
+        $filters = $apiRequest->getRawFilter();
 
         $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
 
+        $this->createQuery(urldecode($filters));
         $totalAmount = $this->totalAmountResourceCallable();
         $results = $this->listResourceCallable();
 

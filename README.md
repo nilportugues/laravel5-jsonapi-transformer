@@ -35,7 +35,7 @@
   - [PUT](#put)
   - [PATCH](#patch)
   - [DELETE](#delete)
-- [GET Query Params: include, fields, sort and page](#get-query-params-include-fields-sort-and-page)
+- [GET Query Params: include, fields, sort, page and filter](#get-query-params-include-fields-sort-page-and-filter)
 - [POST/PUT/PATCH with Relationships](#postputpatch-with-relationships)
 - [Custom Response Headers](#custom-response-headers)
 - [Common Errors and Solutions](#common-errors-and-solutions)
@@ -1033,7 +1033,7 @@ And notice how response will be empty:
 
 <br>
 
-## GET Query Params: include, fields, sort and page
+## GET Query Params: include, fields, sort, page and filter
 
 According to the standard, for GET method, it is possible to:
 - Show only those fields requested using `fields`query parameter.
@@ -1095,6 +1095,23 @@ For instance: `/employees?sort=surname,-first_name`
   - &page[size]
   
 For instance: `/employees?page[number]=1&page[size]=10`  
+
+- The standard specifies that the `filter` query parameter can be provided in order to restrict the list of items that will be 
+returned. While standard doesn't specify how the contents of the `filter` parameter should be structured we've provided support 
+for the a subset of operators from the Resource Query Language (RQL) allowing you to form complex queries such as 
+*all employees whose surname starts with the letter 'b' and whose job title is not 'developer' or 'tester'*.  This implementation
+supports the following RQL operators:
+
+  - Scalar operators: `eq`, `ne`, `lt`, `le`, `gt`, `ge` and `like`
+  - Array operators: `in` and `out`
+  - Logical operators: `and`, `or` and `not`
+
+For instance: `/employees?filter=and(like(surname,b*),not(or(eq(job_title,developer),eq(job_title,tester))))`
+Or alternately:`/employees?filter=(like(surname,b*)%26not(eq(job_title,developer)|eq(job_title,tester)))`
+
+More information on RQL including how operators and values should be encoded in a query string can be found at the 
+[RQL Parser](https://github.com/xiag-ag/rql-parser) project on GitHub. 
+
 
 ## POST/PUT/PATCH with Relationships
 

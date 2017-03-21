@@ -135,8 +135,8 @@ class EmployeesController extends JsonApiController
         $fields = $apiRequest->getFields();
         $sorting = $apiRequest->getSort();
         $included = $apiRequest->getIncludedRelationships();
-        $filters = $apiRequest->getFilters();
-
+        $filters = $apiRequest->getRawFilter();
+        
         $resource = new ListResource($this->serializer, $page, $fields, $sorting, $included, $filters);
 
         $totalAmount = function () use ($id) {

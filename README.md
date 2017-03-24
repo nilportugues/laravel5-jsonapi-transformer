@@ -1,7 +1,6 @@
 # Laravel 5 JSON API Server Package
 
 
-[![Build Status](https://travis-ci.org/nilportugues/laravel5-jsonapi.svg?branch=master)](https://travis-ci.org/nilportugues/laravel5-jsonapi)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/nilportugues/laravel5-jsonapi-transformer/?branch=master) [![SensioLabsInsight](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318/mini.png)](https://insight.sensiolabs.com/projects/22db88f5-d061-4b32-bad1-4b806ac07318) 
 [![Latest Stable Version](https://poser.pugx.org/nilportugues/laravel5-json-api/v/stable)](https://packagist.org/packages/nilportugues/laravel5-json-api) 
 [![Total Downloads](https://poser.pugx.org/nilportugues/laravel5-json-api/downloads)](https://packagist.org/packages/nilportugues/laravel5-json-api) 
@@ -20,15 +19,15 @@
 - [Installation](#installation)
 - [Configuration (Laravel 5 & Lumen)](#configuration-laravel-5--lumen)
   - [Configuration for Laravel 5](#configuration-for-laravel-5)
-        - [Step 1: Add the Service Provider](#step-1-add-the-service-provider)
-        - [Step 2: Defining routes](#step-2-defining-routes)
-        - [Step 3: Definition](#step-3-definition)
-        - [Step 4: Usage](#step-4-usage)
+    - [Step 1: Add the Service Provider](#step-1-add-the-service-provider)
+    - [Step 2: Defining routes](#step-2-defining-routes)
+    - [Step 3: Definition](#step-3-definition)
+    - [Step 4: Usage](#step-4-usage)
   - [Configuration for Lumen](#configuration-for-lumen)
-        - [Step 1: Add the Service Provider](#step-1-add-the-service-provider-1)
-        - [Step 2: Defining routes](#step-2-defining-routes-1)
-        - [Step 3: Definition](#step-3-definition-1)
-        - [Step 4: Usage](#step-4-usage-1)
+    - [Step 1: Add the Service Provider](#step-1-add-the-service-provider-1)
+    - [Step 2: Defining routes](#step-2-defining-routes-1)
+    - [Step 3: Definition](#step-3-definition-1)
+    - [Step 4: Usage](#step-4-usage-1)
 - [JsonApiController](#jsonapicontroller)
 - [Examples: Consuming the API](#examples-consuming-the-api)
   - [GET](#get)
@@ -1387,8 +1386,6 @@ Double check, if missing, add it and refresh the resource. It should be gone!
 
 ----
 
-<br>
-
 ## Contribute
 
 Contributions to the package are always welcome!
@@ -1397,7 +1394,6 @@ Contributions to the package are always welcome!
 * You can grab the source code at the package's [Git repository](https://github.com/nilportugues/laravel5-jsonapi-transformer).
 
 
-<br>
 ## Support
 
 Get in touch with me using one of the following means:
@@ -1405,7 +1401,6 @@ Get in touch with me using one of the following means:
  - Emailing me at <contact@nilportugues.com>
  - Opening an [Issue](https://github.com/nilportugues/laravel5-jsonapi-transformer/issues/new)
 
-<br>
 ## Authors
 
 * [Nil Portugués Calderó](http://nilportugues.com)

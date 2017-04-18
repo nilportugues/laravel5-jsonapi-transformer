@@ -39,7 +39,8 @@ class Laravel52Provider extends Laravel51Provider
 
         /** @var \Illuminate\Routing\Route $routerObject */
         foreach ($this->getRouterCollection($router) as $routerObject) {
-            if ($routerObject->getName() === $value['name']) {
+            $prefix = str_replace('/', '.', $routerObject->getPrefix());
+            if ($routerObject->getName() === $prefix . $value['name']) {
                 $route = $routerObject->getPath();
 
                 return $this->calculateFullPath($value, $route);

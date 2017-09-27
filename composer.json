@@ -14,7 +14,7 @@
     ],
     "require": {
         "nilportugues/json-api": "^2.4",
-        "symfony/psr-http-message-bridge": "~0.1",
+        "symfony/psr-http-message-bridge": "1.0",
         "nilportugues/serializer-eloquent": "~1.0"
     },
     "require-dev": {
